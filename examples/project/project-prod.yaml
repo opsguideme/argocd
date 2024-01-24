@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Prod Project
+  
+  sourceRepos:
+  - 'https://github.com/opsguideme/argocd-example-apps.git'
+
+  destinations:
+  - namespace: guestbook
+    server: https://kubernetes.default.svc
+    name: in-cluster
+
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: 'Namespace'
+
+  namespaceResourceWhitelist:
+  - group: 'apps'
+    kind: Deployment
+  - group: ''
+    kind: Service
+
+  orphanedResources:
+    warn: true
+
+  roles:
+  - name: gitops-admin
+    description: Admin privileges to prod project for gitops group
+    policies:
+    - p, proj:prod:gitops-admin, *, *, prod/*, allow
+    groups:
+    - gitops-team
+  - name: dev-readonly
+    description: Readonly privileges to prod project for dev-team group
+    policies:
+    - p, proj:prod:dev-readonly, applications, get, prod/guestbook-prod, allow
+    groups:
+    - dev-team
+
+  sourceNamespaces:
+  - "guestbook"

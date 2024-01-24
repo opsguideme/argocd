@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Dev Project
+  
+  sourceRepos:
+  - 'https://github.com/opsguideme/argocd-example-apps.git'
+
+  destinations:
+  - namespace: guestbook
+    server: https://kubernetes.default.svc
+    name: in-cluster
+
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+
+  orphanedResources:
+    warn: false
+
+  roles:
+  - name: dev-admin
+    description: Admin privileges to dev project for dev-team group
+    policies:
+    - p, proj:dev:dev-admin, *, *, dev/*, allow
+    groups:
+    - dev-team
